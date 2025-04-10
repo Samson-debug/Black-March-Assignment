@@ -1,7 +1,4 @@
-using System;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Serialization;
 
 public class Tile : MonoBehaviour
 {
@@ -9,6 +6,7 @@ public class Tile : MonoBehaviour
     public Material defaultMaterial;
     public Material selectedMaterial;
     public Material PathMaterial;
+    public TileType tileType = TileType.None;
     
     //node position in grid
     public int gridX;
@@ -30,8 +28,9 @@ public class Tile : MonoBehaviour
         renderer = GetComponentInChildren<Renderer>();
     }
 
-    public void ChangeVisual(TileType tileType)
+    public void ChangeVisual(TileType _tileType)
     {
+        tileType = _tileType;
         if (tileType == TileType.None)
             renderer.material = defaultMaterial;
         else if (tileType == TileType.Selected)

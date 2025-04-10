@@ -1,11 +1,10 @@
-using System;
-using System.Text;
 using TMPro;
 using UnityEngine;
 
 public class TileInfoUiManager : MonoBehaviour
 {
     [Range(0f, 3f)] public float Yoffset = 1f;
+    public LayerMask gridLayerMask;
     
     bool canShowTileInfo;
     TextMeshProUGUI TileInfoText;
@@ -48,18 +47,20 @@ public class TileInfoUiManager : MonoBehaviour
         
         string tileInfo;
         Vector3 textPosition;
+        TileType previousTileType;
         RaycastHit hit;
 
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, gridLayerMask))
         {
             Tile tile = hit.collider.GetComponent<Tile>();
 
             if (tile != null)
             {
                 selectedTile = tile;
-                
+
                 selectedTile.ChangeVisual(TileType.Selected);
+                
                 tileInfo = $"X : {tile.gridX}, Y : {tile.gridY}";
                 textPosition = new Vector3(
                     tile.transform.position.x,

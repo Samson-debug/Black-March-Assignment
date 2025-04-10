@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public Action OnMove;
+    public Action<Tile> OnMove;
     public GridManager gridManager;
     public Vector2Int spawnTileIndex;
     
@@ -14,11 +15,15 @@ public class Player : MonoBehaviour
     public float jumpHeight = 0.5f;
     public float rotationSpeed = 720f;
     public LayerMask gridLayer;
+    
+    [Header("UI Elements")]
+    public TextMeshProUGUI movingText;
 
     [HideInInspector] public Tile currentTile;
     Tile targetTile;
     List<Tile> path = new List<Tile>();
     Coroutine moveCoroutine;
+    Coroutine movingMessageCoroutine;
     bool isMoving = false;
     
     
@@ -26,19 +31,6 @@ public class Player : MonoBehaviour
     {
         SetPosition();
     }
-
-    #region Subscribing/Unsubscribing Events
-    private void OnEnable()
-    {
-        ObstacleManager.OnObstacleSpawned += ChangeCurrentMovement;
-    }
-
-    private void OnDisable()
-    {
-        ObstacleManager.OnObstacleSpawned -= ChangeCurrentMovement;
-    }
-
-    #endregion
 
     private void SetPosition()
     {
@@ -50,15 +42,30 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetMouseButtonDown(0) && !isMoving)
-            MovePlayer();
+        if (Input.GetMouseButtonDown(0)){
+            if (isMoving){
+                if(movingMessageCoroutine != null)
+                    StopCoroutine(movingMessageCoroutine);
+                movingMessageCoroutine = StartCoroutine(EnableMovingMessage());
+            }
+            else
+                MovePlayer();
+        }
+    }
+
+    private IEnumerator EnableMovingMessage()
+    {
+        movingText.gameObject.SetActive(true);
+        
+        yield return new WaitForSeconds(0.4f);
+        
+        movingText.gameObject.SetActive(false);
     }
 
     private void MovePlayer()
     {
         if(path != null && path.Count > 0){
-            foreach (var pathTile in path)
-            {
+            foreach (var pathTile in path){
                 if (pathTile != null)
                     pathTile.ChangeVisual(TileType.None);
             }
@@ -78,14 +85,17 @@ public class Player : MonoBehaviour
         if (targetTile == null) return;
         if(!targetTile.isWalkable) return;
             
-        path = gridManager.FindPath(currentTile, targetTile, gridManager);
-            
+        path = gridManager.FindPath(currentTile, targetTile);
+        
         if(path == null || path.Count == 0) return;
-        foreach (var pathTile in path)
-        {
-            pathTile.ChangeVisual(TileType.Path);
+        
+        foreach (var pathTile in path){
+            if (pathTile != null)
+                pathTile.ChangeVisual(TileType.Path);
         }
 
+        if(moveCoroutine != null)
+            StopCoroutine(moveCoroutine);
         // Start moving along the path
         moveCoroutine = StartCoroutine(MoveAlongPath());
     }
@@ -139,25 +149,14 @@ public class Player : MonoBehaviour
             //Reset Path visual
             previousTile.ChangeVisual(TileType.None);
             
+            //update enemy for player position change
+            int nextPathTileIndex = (i + 1 ) < path.Count ? (i + 1) : i;
+            OnMove?.Invoke(path[nextPathTileIndex]);
+            
             // Small pause between each tile
             yield return new WaitForSeconds(0.1f);
         }
 
         isMoving = false;
-        OnMove?.Invoke();
-    }
-
-    private void ChangeCurrentMovement()
-    {
-        //Disable Path Visuals
-        foreach (var pathTiles in path)
-        {
-            pathTiles.ChangeVisual(TileType.None);
-        }
-
-        if(moveCoroutine != null)
-            StopCoroutine(moveCoroutine); // Stop current movement
-        
-        StartMovement();
     }
 }

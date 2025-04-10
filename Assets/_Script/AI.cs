@@ -2,5 +2,5 @@ using UnityEngine;
 
 public interface AI
 { 
-    void Chase();
+    void Chase(Tile tile);
 }
