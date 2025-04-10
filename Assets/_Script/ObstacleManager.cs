@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class ObstacleManager : MonoBehaviour
 {
+    public static Action OnObstacleSpawned; //Informs other if obstacle created
+    
     public ObstacleData obstacleData;
     public GameObject obstaclePrefab;
     
@@ -47,5 +49,7 @@ public class ObstacleManager : MonoBehaviour
                 tile.isWalkable = false;
             }
         }
+        
+        OnObstacleSpawned?.Invoke();
     }
 }

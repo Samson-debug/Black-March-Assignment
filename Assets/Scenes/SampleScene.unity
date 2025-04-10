@@ -843,6 +843,10 @@ PrefabInstance:
       propertyPath: gridManager
       value: 
       objectReference: {fileID: 1904517496}
+    - target: {fileID: 4331380531443760255, guid: f4b64c1ac0e1a794eb5bf1bebe9c340a, type: 3}
+      propertyPath: gridLayer.m_Bits
+      value: 128
+      objectReference: {fileID: 0}
     - target: {fileID: 7445538112401413915, guid: f4b64c1ac0e1a794eb5bf1bebe9c340a, type: 3}
       propertyPath: m_Name
       value: Player-Fox

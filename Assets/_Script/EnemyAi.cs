@@ -17,20 +17,24 @@ public class EnemyAi : MonoBehaviour, AI
     public float rotationSpeed = 720f;
     
     Tile currentTile;
-    Tile destinationTile;
+    Tile targetTile;
     List<Tile> path = new List<Tile>();
+    Coroutine moveCoroutine;
     bool isMoving = false;
     
     #region Subscribing/Unsubscribing Events
     private void OnEnable()
     {
         player.OnMove += Chase;
+        ObstacleManager.OnObstacleSpawned += ChangeCurrentMovement;
     }
 
     private void OnDisable()
     {
         player.OnMove -= Chase;
+        ObstacleManager.OnObstacleSpawned -= ChangeCurrentMovement;
     }
+
     #endregion
 
     private void Start()
@@ -45,12 +49,11 @@ public class EnemyAi : MonoBehaviour, AI
         currentTile = tile;
         transform.position = tile.transform.position + new Vector3(0, 0.5f, 0);
     }
-    
+
     public void Chase()
     {
         if (path != null && path.Count > 0)
         {
-            if (player.currentTile == path[path.Count - 1]) return;
             foreach (var pathTiles in path)
             {
                 pathTiles.ChangeVisual(TileType.None);
@@ -59,10 +62,10 @@ public class EnemyAi : MonoBehaviour, AI
 
 
 
-        Tile tile = player.currentTile;
-        if (tile == null) return;
+        targetTile = player.currentTile;
+        if (targetTile == null || targetTile == currentTile) return;
         
-        path = gridManager.FindPath(currentTile, tile, gridManager);
+        path = gridManager.FindPath(currentTile, targetTile, gridManager);
     
         if(path == null || path.Count == 0) return;
     
@@ -72,7 +75,7 @@ public class EnemyAi : MonoBehaviour, AI
         }
 
         // Start moving
-        StartCoroutine(MoveAlongPath());
+        moveCoroutine = StartCoroutine(MoveAlongPath());
     }
 
     private IEnumerator MoveAlongPath()
@@ -111,6 +114,7 @@ public class EnemyAi : MonoBehaviour, AI
                 currentPos.y += height;
 
                 transform.position = currentPos;
+                
                 yield return null;
             }
 
@@ -133,4 +137,27 @@ public class EnemyAi : MonoBehaviour, AI
 
         isMoving = false;
     }
+
+    private void ChangeCurrentMovement()
+    {
+        //Disable Path Visuals
+        foreach (var pathTiles in path)
+        {
+            pathTiles.ChangeVisual(TileType.None);
+        }
+
+        if(moveCoroutine != null)
+            StopCoroutine(moveCoroutine); // Stop current movement
+        path = gridManager.FindPath(currentTile, targetTile, gridManager);
+
+        //Enable Path visual
+        foreach (var pathTile in path)
+        {
+            pathTile.ChangeVisual(TileType.Path);
+        }
+        
+        //Start enemy movement
+        StartCoroutine(MoveAlongPath());
+    }
+
 }

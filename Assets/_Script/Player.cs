@@ -16,8 +16,9 @@ public class Player : MonoBehaviour
     public LayerMask gridLayer;
 
     [HideInInspector] public Tile currentTile;
-    Tile destinationTile;
+    Tile targetTile;
     List<Tile> path = new List<Tile>();
+    Coroutine moveCoroutine;
     bool isMoving = false;
     
     
@@ -25,6 +26,19 @@ public class Player : MonoBehaviour
     {
         SetPosition();
     }
+
+    #region Subscribing/Unsubscribing Events
+    private void OnEnable()
+    {
+        ObstacleManager.OnObstacleSpawned += ChangeCurrentMovement;
+    }
+
+    private void OnDisable()
+    {
+        ObstacleManager.OnObstacleSpawned -= ChangeCurrentMovement;
+    }
+
+    #endregion
 
     private void SetPosition()
     {
@@ -52,23 +66,28 @@ public class Player : MonoBehaviour
         
         //Cast a ray to get the tile to reach
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, gridLayer))
-        {
-            Tile tile = hit.collider.GetComponent<Tile>();
-            if (tile == null) return;
-            if(!tile.isWalkable) return;
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, gridLayer)){
+            targetTile = hit.collider.GetComponent<Tile>();
             
-            path = gridManager.FindPath(currentTile, tile, gridManager);
-            
-            if(path == null || path.Count == 0) return;
-            foreach (var pathTile in path)
-            {
-                pathTile.ChangeVisual(TileType.Path);
-            }
-
-            // Start moving along the path
-            StartCoroutine(MoveAlongPath());
+            StartMovement();
         }
+    }
+
+    private void StartMovement()
+    {
+        if (targetTile == null) return;
+        if(!targetTile.isWalkable) return;
+            
+        path = gridManager.FindPath(currentTile, targetTile, gridManager);
+            
+        if(path == null || path.Count == 0) return;
+        foreach (var pathTile in path)
+        {
+            pathTile.ChangeVisual(TileType.Path);
+        }
+
+        // Start moving along the path
+        moveCoroutine = StartCoroutine(MoveAlongPath());
     }
 
     private IEnumerator MoveAlongPath()
@@ -126,5 +145,19 @@ public class Player : MonoBehaviour
 
         isMoving = false;
         OnMove?.Invoke();
+    }
+
+    private void ChangeCurrentMovement()
+    {
+        //Disable Path Visuals
+        foreach (var pathTiles in path)
+        {
+            pathTiles.ChangeVisual(TileType.None);
+        }
+
+        if(moveCoroutine != null)
+            StopCoroutine(moveCoroutine); // Stop current movement
+        
+        StartMovement();
     }
 }
