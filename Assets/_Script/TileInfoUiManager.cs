@@ -16,7 +16,7 @@ public class TileInfoUiManager : MonoBehaviour
     {
         mainCamera = Camera.main;
         TileInfoText = GetComponentInChildren<TextMeshProUGUI>();
-        TileInfoText.gameObject.SetActive(false); //don't show text at start
+        TileInfoText.gameObject.SetActive(false); //make text invisible at start
     }
 
     private void Update()

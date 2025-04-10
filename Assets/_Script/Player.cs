@@ -13,6 +13,7 @@ public class Player : MonoBehaviour
     public float moveSpeed = 5f;
     public float jumpHeight = 0.5f;
     public float rotationSpeed = 720f;
+    public LayerMask gridLayer;
 
     [HideInInspector] public Tile currentTile;
     Tile destinationTile;
@@ -49,8 +50,9 @@ public class Player : MonoBehaviour
             }
         }
         
+        //Cast a ray to get the tile to reach
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, gridLayer))
         {
             Tile tile = hit.collider.GetComponent<Tile>();
             if (tile == null) return;

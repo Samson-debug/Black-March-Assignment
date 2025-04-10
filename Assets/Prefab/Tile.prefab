@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7845449345304884879}
   - component: {fileID: 6727855163785151150}
   - component: {fileID: -3057096190067647966}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Tile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -126,7 +126,8 @@ MonoBehaviour:
   PathMaterial: {fileID: 2100000, guid: 2998e03b48bbe714f84aeec83d75ec19, type: 2}
   gridX: 0
   gridY: 0
-  hasEntity: 0
+  parent: {fileID: 0}
   gCost: 0
   hCost: 0
-  parent: {fileID: 0}
+  hasEntity: 0
+  isWalkable: 0
